@@ -1,6 +1,5 @@
 import * as THREE from "three";
-import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils";
-import {Beam} from "./lib/PartBuilder";
+import {Beam, Bolt} from "./lib/PartBuilder";
 
 let mouseIsDown = false;
 let previousX = 0;
@@ -32,6 +31,18 @@ const beamGreen = new Beam(8, 2, 0.25, 0xa9f5d8)
     .withEndPlates(0.125, 1)
     .move(0, 0, 2);
 
+const ceeGreen = new Beam(6, 1, 0.04, 0xa9f5d8)
+    .asCee()
+    .move(0, 4, 2);
+
+const zeeRed = new Beam(6, 1, 0.04, 0xe38686)
+    .asZee()
+    .move(0, 4, -2);
+
+const bolt = new Bolt(0.2, 1.6, 0xfffcbd)
+    .withWasher(2)
+    .move(0, 3, 0);
+
 // draw the parts
 const parts = [];
 const objs = [];
@@ -39,6 +50,9 @@ const objs = [];
 parts.push(beamBlue);
 parts.push(beamRed);
 parts.push(beamGreen);
+parts.push(ceeGreen);
+parts.push(zeeRed);
+parts.push(bolt);
 
 parts.forEach(part => {
     drawPart(part);
@@ -58,31 +72,6 @@ function drawPart(part) {
 
     scene.add(drawnPart);
     scene.add(partOutline);
-}
-
-function createBeam(length, width, thickness, flangeWidth, flangeThickness, color) {
-    const geometries = [];
-
-    const webGeometry = new THREE.BoxGeometry(width, length, thickness);
-
-    const flangeDistance = width / 2 + flangeThickness / 2 + .01;
-
-    const ofGeometry = new THREE.BoxGeometry(flangeThickness, length, flangeWidth);
-    ofGeometry.translate(flangeDistance, 0, 0);
-
-    const ifGeometry = new THREE.BoxGeometry(flangeThickness, length, flangeWidth);
-    ifGeometry.translate(-flangeDistance, 0, 0);
-
-    geometries.push(ofGeometry);
-    geometries.push(ifGeometry);
-    geometries.push(webGeometry);
-
-    const material = new THREE.MeshBasicMaterial({color: color });
-
-    const mainGeometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
-    mainGeometry.computeBoundingBox();
-
-    return new THREE.Mesh(mainGeometry, material);
 }
 
 function handleRotation() {
@@ -109,5 +98,4 @@ function handleRotation() {
         }
     });
 }
-
 handleRotation();
