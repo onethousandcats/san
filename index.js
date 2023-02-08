@@ -22,10 +22,14 @@ renderer.setPixelRatio(window.devicePixelRatio);
 
 // add geometry
 const beamBlue = new Beam(8, 2, 0.25, 0xabcdd1)
-    .withFlanges(0.125, 1);
+    .move(0, 0, -2);
 
 const beamRed = new Beam(8, 2, 0.25, 0xe38686)
+    .withFlanges(0.125, 1);
+
+const beamGreen = new Beam(8, 2, 0.25, 0xa9f5d8)
     .withFlanges(0.125, 1)
+    .withEndPlates(0.125, 1)
     .move(0, 0, 2);
 
 // draw the parts
@@ -34,6 +38,7 @@ const objs = [];
 
 parts.push(beamBlue);
 parts.push(beamRed);
+parts.push(beamGreen);
 
 parts.forEach(part => {
     drawPart(part);
