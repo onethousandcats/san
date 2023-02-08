@@ -1,5 +1,10 @@
 import * as THREE from "three";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils";
+import {Beam} from "./lib/PartBuilder";
+
+let mouseIsDown = false;
+let previousX = 0;
+const rotationSmoothing = 0.05;
 
 const canvas = document.querySelector(".webgl");
 const scene = new THREE.Scene();
@@ -16,42 +21,48 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 
 // add geometry
-const beam = createBeam(10, 2, 0.25, 3, 0.125, 0x5B8A67);
+const beamBlue = new Beam(8, 2, 0.25, 0xabcdd1)
+    .withFlanges(0.125, 1);
+
+const beamRed = new Beam(8, 2, 0.25, 0xe38686)
+    .withFlanges(0.125, 1)
+    .move(0, 0, 2);
 
 // draw the parts
-const outline = new THREE.LineSegments(
-    new THREE.EdgesGeometry(beam.geometry),
-    new THREE.LineBasicMaterial({ color: 0X000000 }));
+const parts = [];
+const objs = [];
 
-scene.add(beam);
-scene.add(outline);
+parts.push(beamBlue);
+parts.push(beamRed);
 
+parts.forEach(part => {
+    drawPart(part);
+})
 
 renderer.render(scene, camera);
 
-function animate() {
-    beam.rotation.x += 0.003;
-    beam.rotation.y += 0.004;
-    beam.rotation.z += 0.005;
+function drawPart(part) {
+    const drawnPart = part.draw();
 
-    outline.rotation.x += 0.003;
-    outline.rotation.y += 0.004;
-    outline.rotation.z += 0.005;
+    const partOutline = new THREE.LineSegments(
+        new THREE.EdgesGeometry(drawnPart.geometry),
+        new THREE.LineBasicMaterial({ color: 0X000000 }));
 
-    renderer.render(scene, camera);
+    objs.push(drawnPart);
+    objs.push(partOutline);
 
-    window.requestAnimationFrame(animate);
-};
+    scene.add(drawnPart);
+    scene.add(partOutline);
+}
 
 function createBeam(length, width, thickness, flangeWidth, flangeThickness, color) {
     const geometries = [];
 
     const webGeometry = new THREE.BoxGeometry(width, length, thickness);
 
-    const ofGeometry = new THREE.BoxGeometry(flangeThickness, length, flangeWidth);
-
     const flangeDistance = width / 2 + flangeThickness / 2 + .01;
 
+    const ofGeometry = new THREE.BoxGeometry(flangeThickness, length, flangeWidth);
     ofGeometry.translate(flangeDistance, 0, 0);
 
     const ifGeometry = new THREE.BoxGeometry(flangeThickness, length, flangeWidth);
@@ -69,4 +80,29 @@ function createBeam(length, width, thickness, flangeWidth, flangeThickness, colo
     return new THREE.Mesh(mainGeometry, material);
 }
 
-// animate();
+function handleRotation() {
+    addEventListener('mousedown', (event) => {
+        mouseIsDown = true;
+        previousX = event.clientX;
+    });
+
+    addEventListener('mouseup', () => {
+       mouseIsDown = false;
+    });
+
+    addEventListener('mousemove', (event) => {
+        if (mouseIsDown) {
+            const rotation = (previousX < event.clientX ? 1 : -1) * rotationSmoothing;
+
+            objs.forEach(obj => {
+               obj.rotation.y += rotation;
+            });
+
+            renderer.render(scene, camera);
+
+            previousX = event.clientX;
+        }
+    });
+}
+
+handleRotation();
